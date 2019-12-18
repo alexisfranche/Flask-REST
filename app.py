@@ -89,7 +89,7 @@ def update_product(id):
 
     return product_schema.jsonify(product)
 
-# Delete product
+# Delete product by id
 @app.route('/product/<id>', methods=['DELETE'])
 def delete_product(id):
     product = Product.query.get(id)
