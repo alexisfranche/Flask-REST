@@ -17,6 +17,48 @@ db = SQLAlchemy(app)
 # Init Marshmallow
 ma = Marshmallow(app)
 
+# User Class/Model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=False)
+    job = db.Column(db.String(200))
+    salary = db.Column(db.Float)
+
+    def __init__(self, name, job, salary):
+        self.name=name
+        self.job=job
+        self.salary=salary
+
+# User Schema
+class UserSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'name', 'job', 'salary')
+
+# Init Schema User
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+
+# Create a Product
+@app.route('/user', methods=['POST'])
+def add_user():
+    name = request.json['name']
+    job = request.json['job']
+    salary = request.json['salary']
+
+    new_user = User(name, job, salary)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return user_schema.jsonify(new_user)
+
+# Get all users
+@app.route('/user', methods=['GET'])
+def get_users():
+    all_users = User.query.all()
+    result = users_schema.dump(all_users)
+    return jsonify(result)
+
 # Product Class/Model
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +80,7 @@ class ProductSchema(ma.Schema):
         fields = ('id', 'name', 'description', 'price', 'qty')
 
 
-# Init Schema
+# Init Schema Product
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
 
@@ -97,6 +139,8 @@ def delete_product(id):
     db.session.commit()
 
     return product_schema.jsonify(product)
+
+db.create_all()
 
 # Run Server 
 if __name__ == '__main__':
